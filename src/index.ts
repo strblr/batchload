@@ -1,7 +1,7 @@
 export interface Config<K, T> {
   delay?: number;
   id: (key: K) => string;
-  loader: (keys: K[]) => Promise<T[]>;
+  loader: (keys: K[]) => Promise<(T | Error)[]>;
 }
 
 interface QueueItem<K, T> {
@@ -29,7 +29,11 @@ export class Superload<K, T> {
         this.queue.clear();
         this.config
           .loader(items.map(({ key }) => key))
-          .then(data => items.forEach(({ resolve }, i) => resolve(data[i])))
+          .then(data =>
+            items.forEach(({ resolve, reject }, i) =>
+              data[i] instanceof Error ? reject(data[i]) : resolve(data[i])
+            )
+          )
           .catch(reason => items.forEach(({ reject }) => reject(reason)));
       }, this.config.delay ?? 0);
     }

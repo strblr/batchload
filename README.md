@@ -17,7 +17,7 @@ This interface defines the configuration for a Superload instance (passed to the
 
 - **delay?** _(number)_: An optional delay in milliseconds before processing queued requests. Defaults to 0.
 - **id** _(key: K) => string_: A function that returns a unique identifier for a given key. Used to deduplicate requests.
-- **loader** _(keys: K[]) => Promise<T[]>_: A function that accepts an array of keys and returns a promise which resolves to an array of corresponding resources. This function is invoked when the batch is processed. The order of returned values must match the order of keys.
+- **loader** _(keys: K[]) => Promise<(T | Error)[]>_: A function that accepts an array of keys and returns a promise which resolves to an array of corresponding resources. This function is invoked when the batch is processed. The order of returned values must match the order of keys. Errors can be returned individually to signal issues on specific resources.
 
 **Superload<K, T>**
 
@@ -62,4 +62,7 @@ const [user1, user2, user3] = await userLoader.loadMany([
 console.log("Loaded users:", [user1, user2, user3]);
 ```
 
-If the batched call promise is rejected, every affected load and loadMany promises are rejected with the same reason.
+### Error handling
+
+- If the batched call promise is rejected as a whole, every **load** and **loadMany** promise that depends on it is rejected with the same reason.
+- If the batched call resolves to an array containing some **Error** instances, the **load** and **loadMany** promises associated with these errors are rejected with the provided error.

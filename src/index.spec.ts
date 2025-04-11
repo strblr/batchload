@@ -132,3 +132,28 @@ it("loads keys in parallel", async () => {
 
   expect(receivedBatches).toEqual([["a", "b", "c", "d"]]);
 });
+
+it("handles individual errors", async () => {
+  const receivedBatches: string[][] = [];
+  const loader = new Superload<string, string>({
+    delay: 0,
+    id: key => key,
+    loader: async keys => {
+      receivedBatches.push([...keys]);
+      return keys.map(key => {
+        if (key === "b") return new Error("Error loading key b");
+        return `${key}-loaded`;
+      });
+    }
+  });
+
+  const promise1 = loader.load("a");
+  const promise2 = loader.load("b");
+
+  await Promise.allSettled([promise1, promise2]);
+
+  expect(receivedBatches).toHaveLength(1);
+  expect(receivedBatches[0]).toEqual(["a", "b"]);
+  expect(await promise1).toEqual("a-loaded");
+  await expect(promise2).rejects.toThrow("Error loading key b");
+});
