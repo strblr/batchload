@@ -1,0 +1,30 @@
+{
+  "name": "batchload",
+  "version": "1.0.0",
+  "description": "Simplest possible batch loader (inspired by Dataloader)",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/strblr/batchload.git"
+  },
+  "homepage": "https://github.com/strblr/batchload",
+  "bugs": {
+    "url": "https://github.com/strblr/batchload/issues"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.8.3"
+  }
+}

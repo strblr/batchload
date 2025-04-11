@@ -1,2 +1,61 @@
-# vaaa
-Schema validation and data transformation with static type inference
+# batchload
+
+Simplest possible batch loader.
+
+- Batches resource requests into a single call
+- No cache
+
+## Batchloader - A Simple Batched Resource Loader
+
+The module exports the Batchloader class, which provides a simple way to batch asynchronous resource requests. It collects individual resource requests made within a short time frame (configurable) and consolidates them into a single batched call.
+
+### API Reference
+
+**Config<K, T>**
+
+This interface defines the configuration for the Batchloader (passed to the constructor):
+
+- **delay?** _(number)_: An optional delay in milliseconds before processing queued requests. Defaults to 0.
+- **id** _(key: K) => string_: A function that returns a unique identifier for a given key. Used to deduplicate requests.
+- **loader** _(keys: K[]) => Promise<T[]>_: A function that accepts an array of keys and returns a promise which resolves to an array of corresponding resources. This function is invoked when the batch is processed. The order of returned values must match the order of keys.
+
+**Batchloader<K, T>**
+
+The main class responsible for batching logic:
+
+- **constructor(config: Config<K, T>)**
+- **load(key: K): Promise\<T>**
+
+  - Queues a single key for loading. If the same key is requested multiple times during a batching cycle, the returned promise is deduplicated and the key is only passed once to the loader.
+
+- **loadMany(keys: K[]): Promise<T[]>**
+  - Accepts an array of keys, queues them for loading, and returns a promise that resolves when all keys have been processed. The order of returned values matches the order of keys.
+
+### Example Usage
+
+```js
+import { Batchloader } from "batchload";
+
+async function fetchUsers(ids: string[]) {
+  console.log("Fetching users for:", ids);
+  // Replace the following with your actual data retrieval logic, e.g., database or API call
+  return ids.map(id => ({ id, name: `User ${id}` }));
+}
+
+// Instantiate the Batchloader for user data
+const userLoader = new Batchloader({
+  delay: 0, // Optional delay in ms to allow request batching (default: 0)
+  id: key => key, // Here, we use the key itself as the unique identifier
+  loader: fetchUsers // Function to fetch users in batch
+});
+
+// Loading a single user
+userLoader.load("user-1").then(user => console.log("Loaded user:", user));
+
+// Loading multiple users
+userLoader
+  .loadMany(["user-1", "user-2", "user-3"])
+  .then(users => console.log("Loaded users:", users));
+```
+
+If the batched call promise is rejected, every affected load and loadMany promises are rejected with the same reason.
