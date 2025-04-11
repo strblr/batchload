@@ -11,7 +11,7 @@ interface QueueItem<K, T> {
   reject: (reason?: any) => void;
 }
 
-export class Batchloader<K, T> {
+export class Superload<K, T> {
   constructor(private readonly config: Config<K, T>) {}
   private readonly queue = new Map<string, QueueItem<K, T>>();
 
@@ -25,12 +25,12 @@ export class Batchloader<K, T> {
     this.queue.set(id, { key, promise, resolve, reject });
     if (this.queue.size === 1) {
       setTimeout(() => {
-        const queue = [...this.queue.values()];
+        const items = [...this.queue.values()];
         this.queue.clear();
         this.config
-          .loader(queue.map(({ key }) => key))
-          .then(data => queue.forEach(({ resolve }, i) => resolve(data[i])))
-          .catch(reason => queue.forEach(({ reject }) => reject(reason)));
+          .loader(items.map(({ key }) => key))
+          .then(data => items.forEach(({ resolve }, i) => resolve(data[i])))
+          .catch(reason => items.forEach(({ reject }) => reject(reason)));
       }, this.config.delay ?? 0);
     }
     return promise;

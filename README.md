@@ -1,27 +1,27 @@
-# batchload
+# superload
 
 Simplest possible batch loader.
 
 - Batches resource requests into a single call
 - No cache
 
-## Batchloader - A Simple Batched Resource Loader
+## Superload - A Simple Batched Resource Loader
 
-The module exports the Batchloader class, which provides a simple way to batch asynchronous resource requests. It collects individual resource requests made within a short time frame (configurable) and consolidates them into a single batched call.
+The module exports the Superload class, which provides a simple way to batch asynchronous resource requests. It collects individual resource requests made within a short time frame (configurable) and consolidates them into a single batched call.
 
 ### API Reference
 
 **Config<K, T>**
 
-This interface defines the configuration for the Batchloader (passed to the constructor):
+This interface defines the configuration for a Superload instance (passed to the constructor):
 
 - **delay?** _(number)_: An optional delay in milliseconds before processing queued requests. Defaults to 0.
 - **id** _(key: K) => string_: A function that returns a unique identifier for a given key. Used to deduplicate requests.
 - **loader** _(keys: K[]) => Promise<T[]>_: A function that accepts an array of keys and returns a promise which resolves to an array of corresponding resources. This function is invoked when the batch is processed. The order of returned values must match the order of keys.
 
-**Batchloader<K, T>**
+**Superload<K, T>**
 
-The main class responsible for batching logic:
+The main class responsible for the batching logic:
 
 - **constructor(config: Config<K, T>)**
 - **load(key: K): Promise\<T>**
@@ -34,7 +34,7 @@ The main class responsible for batching logic:
 ### Example Usage
 
 ```js
-import { Batchloader } from "batchload";
+import { Superload } from "superload";
 
 async function fetchUsers(ids: string[]) {
   console.log("Fetching users for:", ids);
@@ -42,20 +42,24 @@ async function fetchUsers(ids: string[]) {
   return ids.map(id => ({ id, name: `User ${id}` }));
 }
 
-// Instantiate the Batchloader for user data
-const userLoader = new Batchloader({
-  delay: 0, // Optional delay in ms to allow request batching (default: 0)
+// Instantiate the Superload for user data
+const userLoader = new Superload({
+  delay: 0, // Optional batching delay in ms (default: 0)
   id: key => key, // Here, we use the key itself as the unique identifier
   loader: fetchUsers // Function to fetch users in batch
 });
 
 // Loading a single user
-userLoader.load("user-1").then(user => console.log("Loaded user:", user));
+const user = await userLoader.load("user-1");
+console.log("Loaded user:", user);
 
 // Loading multiple users
-userLoader
-  .loadMany(["user-1", "user-2", "user-3"])
-  .then(users => console.log("Loaded users:", users));
+const [user1, user2, user3] = await userLoader.loadMany([
+  "user-1",
+  "user-2",
+  "user-3"
+]);
+console.log("Loaded users:", [user1, user2, user3]);
 ```
 
 If the batched call promise is rejected, every affected load and loadMany promises are rejected with the same reason.

@@ -1,15 +1,15 @@
 {
-  "name": "batchload",
+  "name": "superload",
   "version": "1.0.0",
-  "description": "Simplest possible batch loader (inspired by Dataloader)",
+  "description": "Simplest possible batch loader (inspired by graphql/dataloader)",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/strblr/batchload.git"
+    "url": "https://github.com/strblr/superload.git"
   },
-  "homepage": "https://github.com/strblr/batchload",
+  "homepage": "https://github.com/strblr/superload",
   "bugs": {
-    "url": "https://github.com/strblr/batchload/issues"
+    "url": "https://github.com/strblr/superload/issues"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

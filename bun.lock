@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "batchload",
+      "name": "superload",
       "devDependencies": {
         "@types/bun": "latest",
         "typescript": "^5.8.3",

@@ -1,9 +1,9 @@
 import { it, expect } from "bun:test";
-import { Batchloader } from "./index";
+import { Superload } from "./index";
 
 it("loads a single key", async () => {
   const loaderCalls: string[][] = [];
-  const batchloader = new Batchloader<string, string>({
+  const loader = new Superload<string, string>({
     id: key => key,
     loader: async keys => {
       loaderCalls.push(keys);
@@ -11,14 +11,14 @@ it("loads a single key", async () => {
     }
   });
 
-  const result = await batchloader.load("a");
+  const result = await loader.load("a");
   expect(result).toBe("a-loaded");
   expect(loaderCalls).toEqual([["a"]]);
 });
 
 it("deduplicates multiple calls for the same key", async () => {
   const loaderCalls: string[][] = [];
-  const batchloader = new Batchloader<string, string>({
+  const loader = new Superload<string, string>({
     id: key => key,
     loader: async keys => {
       loaderCalls.push(keys);
@@ -26,8 +26,8 @@ it("deduplicates multiple calls for the same key", async () => {
     }
   });
 
-  const promise1 = batchloader.load("dup");
-  const promise2 = batchloader.load("dup");
+  const promise1 = loader.load("dup");
+  const promise2 = loader.load("dup");
 
   expect(promise1).toBe(promise2);
   const result = await promise1;
@@ -36,25 +36,25 @@ it("deduplicates multiple calls for the same key", async () => {
 });
 
 it("loads multiple keys using loadMany", async () => {
-  const batchloader = new Batchloader<string, string>({
+  const loader = new Superload<string, string>({
     id: key => key,
     loader: async keys => keys.map(key => `${key}-loaded`)
   });
 
-  const results = await batchloader.loadMany(["a", "b", "c"]);
+  const results = await loader.loadMany(["a", "b", "c"]);
   expect(results).toEqual(["a-loaded", "b-loaded", "c-loaded"]);
 });
 
 it("rejects when the loader fails", async () => {
-  const batchloader = new Batchloader<string, string>({
+  const loader = new Superload<string, string>({
     id: key => key,
     loader: async _keys => {
       throw new Error("Loader failed");
     }
   });
 
-  await expect(batchloader.load("error")).rejects.toThrow("Loader failed");
-  await expect(batchloader.loadMany(["error1", "error2"])).rejects.toThrow(
+  await expect(loader.load("error")).rejects.toThrow("Loader failed");
+  await expect(loader.loadMany(["error1", "error2"])).rejects.toThrow(
     "Loader failed"
   );
 });
@@ -62,7 +62,7 @@ it("rejects when the loader fails", async () => {
 it("deduplicates keys across load and loadMany calls", async () => {
   let callCount = 0;
   const receivedKeys: string[][] = [];
-  const batchloader = new Batchloader<string, string>({
+  const loader = new Superload<string, string>({
     id: key => key,
     loader: async keys => {
       callCount++;
@@ -71,8 +71,8 @@ it("deduplicates keys across load and loadMany calls", async () => {
     }
   });
 
-  const promise1 = batchloader.load("a");
-  const promise2 = batchloader.loadMany(["a", "b"]);
+  const promise1 = loader.load("a");
+  const promise2 = loader.loadMany(["a", "b"]);
   const resultA = await promise1;
   const results = await promise2;
 
@@ -84,7 +84,7 @@ it("deduplicates keys across load and loadMany calls", async () => {
 
 it("makes separate batch calls for loads in different batch cycles", async () => {
   const receivedBatches: string[][] = [];
-  const batchloader = new Batchloader<string, string>({
+  const loader = new Superload<string, string>({
     delay: 0,
     id: key => key,
     loader: async keys => {
@@ -93,13 +93,13 @@ it("makes separate batch calls for loads in different batch cycles", async () =>
     }
   });
 
-  const promise1 = batchloader.load("a");
-  const promise2 = batchloader.load("b");
+  const promise1 = loader.load("a");
+  const promise2 = loader.load("b");
 
   await Promise.all([promise1, promise2]);
 
-  const promise3 = batchloader.load("b");
-  const promise4 = batchloader.load("c");
+  const promise3 = loader.load("b");
+  const promise4 = loader.load("c");
 
   await Promise.all([promise3, promise4]);
 
