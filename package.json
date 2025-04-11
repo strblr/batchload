@@ -1,6 +1,6 @@
 {
   "name": "superload",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simplest possible batch loader (inspired by graphql/dataloader)",
   "type": "module",
   "repository": {

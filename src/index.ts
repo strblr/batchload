@@ -15,7 +15,7 @@ export class Superload<K, T> {
   constructor(private readonly config: Config<K, T>) {}
   private readonly queue = new Map<string, QueueItem<K, T>>();
 
-  loadMany = (keys: K[]) => Promise.all(keys.map(this.load));
+  loadMany = (keys: readonly K[]) => Promise.all(keys.map(this.load));
 
   load = (key: K) => {
     const id = this.config.id(key);
