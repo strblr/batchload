@@ -113,3 +113,22 @@ it("makes separate batch calls for loads in different batch cycles", async () =>
     "c-loaded"
   ]);
 });
+
+it("loads keys in parallel", async () => {
+  const receivedBatches: string[][] = [];
+  const loader = new Superload<string, string>({
+    id: key => key,
+    loader: async keys => {
+      receivedBatches.push([...keys]);
+      return keys.map(key => `${key}-loaded`);
+    }
+  });
+
+  async function load(keys: string[]) {
+    await loader.loadMany(keys);
+  }
+
+  await Promise.all([load(["a", "b"]), load(["c", "d"])]);
+
+  expect(receivedBatches).toEqual([["a", "b", "c", "d"]]);
+});
